@@ -27,6 +27,11 @@ public class FileSystemStorageService implements StorageService {
         this.rootLocation = Paths.get(properties.getLocation());
     }
 
+    /**
+     * Stores a file on the server. If the file has the same name as an existing file on the server,
+     * it will replace the existing file
+     * @param file
+     */
     @Override
     public void store(MultipartFile file) {
         try {
@@ -40,7 +45,9 @@ public class FileSystemStorageService implements StorageService {
             if (!destinationFile.getParent().equals(this.rootLocation.toAbsolutePath())) {
                 throw new StorageException("Cannot store file outside current directory");
             }
+            // Loads the file as bytes
             try (InputStream inputStream = file.getInputStream()) {
+                // Saves the content of the bytes into the destination file
                 Files.copy(inputStream, destinationFile, StandardCopyOption.REPLACE_EXISTING);
             }
         } catch(IOException e) {
@@ -48,6 +55,10 @@ public class FileSystemStorageService implements StorageService {
         }
     }
 
+    /**
+     * Walks the root directory and lists its elements
+     * @return
+     */
     @Override
     public Stream<Path> loadAll() {
         try {
@@ -59,11 +70,21 @@ public class FileSystemStorageService implements StorageService {
         }
     }
 
+    /**
+     * Appends the filename to the root path and returns it
+     * @param filename
+     * @return
+     */
     @Override
     public Path load(String filename) {
         return rootLocation.resolve(filename);
     }
 
+    /**
+     * Given a file's name, return the file as a resource
+     * @param filename
+     * @return
+     */
     @Override
     public Resource loadAsResource(String filename) {
         try {
@@ -79,11 +100,17 @@ public class FileSystemStorageService implements StorageService {
         }
     }
 
+    /**
+     * Delete all files stored on the server
+     */
     @Override
     public void deleteAll() {
         FileSystemUtils.deleteRecursively(rootLocation.toFile());
     }
 
+    /**
+     * Create the file storage location
+     */
     @Override
     public void init() {
         try {
